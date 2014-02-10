@@ -1,0 +1,30 @@
+Pythonic Advanced Web
+
+
+tpl main():
+    html:
+        head:
+            script:
+                url
+                url
+                url
+            stylesheet:
+        body:
+            div(#id=menu):
+                list:
+                    item():
+                    item():
+            div(#container):
+                div(.hero):
+                    h1:Python Looking At You
+                div(.row12):
+                    div(#left .span3):
+                        input-text(?name placeholder="Enter name here")
+                    div(#mid .span3):
+                        Hello {{name}}
+                    div(#right .span3):
+
+
+
+
+
