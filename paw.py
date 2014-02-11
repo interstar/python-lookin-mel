@@ -8,21 +8,6 @@
 
 from pyparsing import *
 
-data = """\
-html:
-    head:
-        script:
-            url
-            url
-    body:
-        div(#menu, .mainmenu):
-            menu
-        div(#content):
-            main
-        div(#footer, x=y):
-            copyright
-        img(width=100):url
-"""
 
 indentStack = [1]
 
@@ -71,17 +56,11 @@ args = Optional( Group( "(" + delimitedList(attr)  + ")" ) )
 tagLine = (identifier + args + ":")
 tagApp = Group( tagLine + INDENT + suite + UNDENT )
 
-oneLine = (identifier + args + ":" + rhs )
+oneLine = Group(identifier + args + ":" + rhs )
 
-
-#rvalue = Forward()
-#funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
-#rvalue << (funcCall | identifier | Word(nums))
 
 stmt << ( tagApp | oneLine | identifier )
 
-print data
-parseTree = suite.parseString(data)
 
 
 def htmlIt(ts,depth=0) :       
@@ -122,6 +101,13 @@ def htmlIt(ts,depth=0) :
 
 
     return "ERROR %s"%ts        
+
+
+data = (open("test.plml")).read()
+
+print data
+parseTree = suite.parseString(data)
+
 
 from pprint import pprint
 pprint( parseTree.asList() )

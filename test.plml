@@ -1,0 +1,14 @@
+html:
+    head:
+        script:
+            url1
+    body:
+        div(#menu, .mainmenu):
+            menu
+        div(#content):
+            
+            main
+        div(#footer, x=y):
+            copyright
+        img(width=x):huh
+
