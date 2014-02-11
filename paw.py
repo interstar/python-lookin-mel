@@ -19,6 +19,9 @@ html:
             menu
         div(#content):
             main
+        div(#footer, x=y):
+            copyright
+        img(width=100):url
 """
 
 indentStack = [1]
@@ -54,23 +57,28 @@ stmt = Forward()
 suite = Group( OneOrMore( empty + stmt.setParseAction( checkPeerIndent ) )  )
 
 identifier = Word(alphas, alphanums)
+val = nums | quotedString
+rhs = val | identifier
 
 cssid = Group("#" + Word(alphas,alphanums))
 csscls = Group("." + Word(alphas,alphanums))
+otheratt = Group(identifier + "=" + rhs)
 
-attr = cssid | csscls
+attr = cssid | csscls | otheratt
 
-#tagLine = (identifier + Optional( Group( "(" +  delimitedList(cssid)  + ")" ) ) + ":")
-tagLine = (identifier + Optional( Group( "(" + delimitedList(attr)  + ")" ) ) + ":")
+args = Optional( Group( "(" + delimitedList(attr)  + ")" ) )
+
+tagLine = (identifier + args + ":")
 tagApp = Group( tagLine + INDENT + suite + UNDENT )
 
+oneLine = (identifier + args + ":" + rhs )
 
 
 #rvalue = Forward()
 #funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
 #rvalue << (funcCall | identifier | Word(nums))
 
-stmt << ( tagApp | identifier )
+stmt << ( tagApp | oneLine | identifier )
 
 print data
 parseTree = suite.parseString(data)
@@ -93,15 +101,19 @@ def htmlIt(ts,depth=0) :
                 s = s + " id='%s'" % ts[i][1]
             elif ts[i][0]=='.' :
                 s = s + " class='%s'" % ts[i][1]
+            elif len(ts[i]) == 3 and ts[i][1] == '=' :
+                s = s + " %s='%s'" % (ts[i][0],ts[i][2])
             i=i+1
         return s
     
     elif len(ts)==3 :
-        tag = ind + "<"+ts[0]+">\n"
-        ctag = ind + "</"+ts[0]+">\n"        
-        middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
-        return tag + middle + ctag        
-    else :
+        if ts[1] == ':' :
+            tag = ind + "<"+ts[0]+">\n"
+            ctag = ind + "</"+ts[0]+">\n"        
+            middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
+            return tag + middle + ctag
+            
+    else :        
         tag = ind + "<"+ts[0]+ htmlIt(ts[1]) + ">\n"
         ctag = ind + "</"+ts[0]+">\n"        
         middle = "".join([htmlIt(x,depth+1) for x in ts[3]])
