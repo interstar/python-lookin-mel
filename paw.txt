@@ -1,5 +1,16 @@
 Pythonic Advanced Web
 
+html:
+    head:
+        script:
+            url
+            url
+    body:
+        div:
+            menu
+        div:
+            main
+        
 
 tpl main():
     html:
@@ -10,7 +21,7 @@ tpl main():
                 url
             stylesheet:
         body:
-            div(#id=menu):
+            div(#menu):
                 list:
                     item():
                     item():

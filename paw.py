@@ -9,24 +9,16 @@
 from pyparsing import *
 
 data = """\
-def A(z):
-  A1
-  B = 100
-  G = A2
-  A2
-  A3
-B
-def BB(a,b,c):
-  BB1
-  def BBA():
-    bba1
-    bba2
-    bba3
-C
-D
-def spam(x,y):
-     def eggs(z):
-         pass
+html:
+    head:
+        script:
+            url
+            url
+    body:
+        div(#menu, .mainmenu):
+            menu
+        div(#content):
+            main
 """
 
 indentStack = [1]
@@ -62,18 +54,66 @@ stmt = Forward()
 suite = Group( OneOrMore( empty + stmt.setParseAction( checkPeerIndent ) )  )
 
 identifier = Word(alphas, alphanums)
-funcDecl = ("def" + identifier + Group( "(" + Optional( delimitedList(identifier) ) + ")" ) + ":")
-funcDef = Group( funcDecl + INDENT + suite + UNDENT )
 
-rvalue = Forward()
-funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
-rvalue << (funcCall | identifier | Word(nums))
-assignment = Group(identifier + "=" + rvalue)
-stmt << ( funcDef | assignment | identifier )
+cssid = Group("#" + Word(alphas,alphanums))
+csscls = Group("." + Word(alphas,alphanums))
+
+attr = cssid | csscls
+
+#tagLine = (identifier + Optional( Group( "(" +  delimitedList(cssid)  + ")" ) ) + ":")
+tagLine = (identifier + Optional( Group( "(" + delimitedList(attr)  + ")" ) ) + ":")
+tagApp = Group( tagLine + INDENT + suite + UNDENT )
+
+
+
+#rvalue = Forward()
+#funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
+#rvalue << (funcCall | identifier | Word(nums))
+
+stmt << ( tagApp | identifier )
 
 print data
 parseTree = suite.parseString(data)
 
-import pprint
-pprint.pprint( parseTree.asList() )
+
+def htmlIt(ts,depth=0) :       
+    ind = "  " * depth
+
+    if isinstance(ts, basestring) :
+        return ind + ts + "\n"
+        
+    if len(ts) == 1 :        
+        return htmlIt(ts[0])
+                    
+    if ts[0] == '(' :
+        i = 1
+        s = ""
+        while ts[i] != ')' :
+            if ts[i][0]=='#' :
+                s = s + " id='%s'" % ts[i][1]
+            elif ts[i][0]=='.' :
+                s = s + " class='%s'" % ts[i][1]
+            i=i+1
+        return s
+    
+    elif len(ts)==3 :
+        tag = ind + "<"+ts[0]+">\n"
+        ctag = ind + "</"+ts[0]+">\n"        
+        middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
+        return tag + middle + ctag        
+    else :
+        tag = ind + "<"+ts[0]+ htmlIt(ts[1]) + ">\n"
+        ctag = ind + "</"+ts[0]+">\n"        
+        middle = "".join([htmlIt(x,depth+1) for x in ts[3]])
+        return tag + middle + ctag
+
+
+
+    return "ERROR %s"%ts        
+
+from pprint import pprint
+pprint( parseTree.asList() )
+
+print
+print htmlIt(parseTree.asList() )
 
