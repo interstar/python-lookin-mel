@@ -10,5 +10,4 @@ html:
             main
         div(#footer, x=y):
             copyright
-        img(width=x):huh
-
+        img(width=p):http://pictures.com/img1

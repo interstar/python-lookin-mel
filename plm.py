@@ -8,8 +8,10 @@ stmt = Forward()
 suite = Group( OneOrMore( empty + stmt.setParseAction( checkPeerIndent ) )  )
 
 identifier = Word(alphas, alphanums)
-val = nums | quotedString
-rhs = val | identifier
+val = identifier | quotedString
+
+rhs = val | identifier 
+
 
 cssid = Group("#" + Word(alphas,alphanums))
 csscls = Group("." + Word(alphas,alphanums))
@@ -26,7 +28,56 @@ oneLine = Group(identifier + args + ":" + rhs )
 
 stmt << ( tagApp | oneLine | identifier )
 
+class Attributes(dict) :
 
+    def __init__(self,attributes) :        
+        for a in attributes :
+            if a == "(" : continue
+            if a == ")" : break
+            if len(a) == 3 and a[1] == "=" :
+                self[a[0]]=a[2]
+                continue
+            if a[0]=='#' :
+                self['id']=a[1]
+                continue
+            if a[0]=='.' :
+                if not self.has_key('class') :
+                    self['class'] = []
+                self['class'].append(a[1])
+
+    def __str__(self) :
+        build = ""
+        for k,v in self.iteritems() :
+            if k == "class" :
+                build = build + """class="%s" """ % " ".join(x for x in self["class"])
+            else :
+                build = build + """%s=%s """ % (k,v)
+        return build        
+                
+        
+class Magic :
+
+    @classmethod 
+    def contains(cls,name) :
+        try :
+            getattr(cls,name)
+            return True
+        except Exception, e:    
+            return False
+        
+    @classmethod 
+    def call(cls,name,*args) :
+        try :
+            return getattr(cls,name)(*args)
+        except Exception, e :
+            raise e
+
+    @classmethod
+    def img(cls,depth,attributes,data) :
+        atts = Attributes(attributes)
+        return "  "*depth + "<img %ssrc='%s'/>\n" % (atts.__str__(),data)
+        
+    
 ## Render as HTML
 def htmlIt(ts,depth=0) :       
     ind = "  " * depth
@@ -57,10 +108,15 @@ def htmlIt(ts,depth=0) :
             middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
             return tag + middle + ctag
             
-    else :        
+    else :
+        if Magic.contains(ts[0]) :
+            return Magic.call(ts[0],depth,ts[1],ts[3])
+            
         tag = ind + "<"+ts[0]+ htmlIt(ts[1]) + ">\n"
-        ctag = ind + "</"+ts[0]+">\n"        
-        middle = "".join([htmlIt(x,depth+1) for x in ts[3]])
+        ctag = ind + "</"+ts[0]+">\n"
+        if isinstance(ts[3], basestring) : middle = ts[3] + "\n"
+        else :
+            middle = "".join([htmlIt(x,depth+1) for x in ts[3]])
         return tag + middle + ctag
 
 
