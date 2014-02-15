@@ -1,13 +1,15 @@
 html:
     head:
+        stylesheet:mystyles.css
         script:
             url1
     body:
         div(#menu, .mainmenu):
             menu
-        div(#content):            
+        div(#content, .first, .big):
             main
-            """This is something else"""
         div(#footer, x=y):
-            copyright
-        img(width=p):http://pictures.com/img1
+            p:            
+                copyright
+            p:
+                img(width=533):http://pictures.com/img1

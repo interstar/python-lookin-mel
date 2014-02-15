@@ -8,9 +8,9 @@ stmt = Forward()
 suite = Group( OneOrMore( empty + stmt.setParseAction( checkPeerIndent ) )  )
 
 identifier = Word(alphas, alphanums)
-val = identifier | quotedString
+val = identifier | Word(nums) | dblQuotedString
 
-rhs = val | identifier 
+rhs = val | identifier
 
 
 cssid = Group("#" + Word(alphas,alphanums))
@@ -24,9 +24,11 @@ args = Optional( Group( "(" + delimitedList(attr)  + ")" ) )
 tagLine = (identifier + args + ":")
 tagApp = Group( tagLine + INDENT + suite + UNDENT )
 
-oneLine = Group(identifier + args + ":" + rhs )
+oneLine = Group(identifier + args + ":" + restOfLine ) | Group(identifier + ":" + restOfLine)
 
 stmt << ( tagApp | oneLine | identifier )
+
+IN = "  "
 
 class Attributes(dict) :
 
@@ -51,7 +53,7 @@ class Attributes(dict) :
             if k == "class" :
                 build = build + """class="%s" """ % " ".join(x for x in self["class"])
             else :
-                build = build + """%s=%s """ % (k,v)
+                build = build + """%s="%s" """ % (k,v)
         return build        
                 
         
@@ -75,12 +77,17 @@ class Magic :
     @classmethod
     def img(cls,depth,attributes,data) :
         atts = Attributes(attributes)
-        return "  "*depth + "<img %ssrc='%s'/>\n" % (atts.__str__(),data)
+        return IN*depth + """<img %ssrc="%s"/>\n""" % (atts.__str__(),data)
+        
+    @classmethod
+    def stylesheet(cls,depth,attributes,data) :
+        atts = Attributes(attributes)
+        return IN*depth + """<link rel="stylesheet" href="%s">""" % data
         
     
 ## Render as HTML
 def htmlIt(ts,depth=0) :       
-    ind = "  " * depth
+    ind = IN * depth
 
     if isinstance(ts, basestring) :
         return ind + ts + "\n"
@@ -89,22 +96,14 @@ def htmlIt(ts,depth=0) :
         return htmlIt(ts[0])
                     
     if ts[0] == '(' :
-        i = 1
-        s = ""
-        while ts[i] != ')' :
-            if ts[i][0]=='#' :
-                s = s + " id='%s'" % ts[i][1]
-            elif ts[i][0]=='.' :
-                s = s + " class='%s'" % ts[i][1]
-            elif len(ts[i]) == 3 and ts[i][1] == '=' :
-                s = s + " %s='%s'" % (ts[i][0],ts[i][2])
-            i=i+1
-        return s
+        atts = Attributes(ts)
+        return " " + atts.__str__()
+        
     
     elif len(ts)==3 :
         if ts[1] == ':' :
             tag = ind + "<"+ts[0]+">\n"
-            ctag = ind + "</"+ts[0]+">\n"        
+            ctag = ind + "</"+ts[0]+">\n"
             middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
             return tag + middle + ctag
             
@@ -119,10 +118,7 @@ def htmlIt(ts,depth=0) :
             middle = "".join([htmlIt(x,depth+1) for x in ts[3]])
         return tag + middle + ctag
 
-
-
-    return "ERROR %s"%ts        
-
+    return "ERROR %s"%ts
 
 if __name__ == '__main__' :
     data = (open("test.plml")).read()
