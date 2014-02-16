@@ -57,6 +57,19 @@ class Attributes(dict) :
                 build = build + """%s="%s" """ % (k,v)
         return build        
                 
+
+def optionalAttributes(f) :
+    def g(cls,depth,*args) :
+        if len(args) == 2 :        
+            attributes = Attributes(args[0])
+            data = args[1]
+        else :
+            data = args[0]
+            attributes = Attributes([])
+        return f(cls,depth,attributes,data)
+    return g 
+
+
         
 class Magic :
 
@@ -65,7 +78,7 @@ class Magic :
         try :
             getattr(cls,name)
             return True
-        except Exception, e:    
+        except Exception, e: 
             return False
 
     @classmethod 
@@ -76,26 +89,15 @@ class Magic :
             raise e
              
     @classmethod
-    def img(cls,*args) :
-        if len(args) == 3 :
-            depth = args[0]
-            attributes = args[1]
-            data = args[2]
-        else :
-            depth = args[0]
-            data = args[1]
-            attributes = []
-        atts = Attributes(attributes)
+    @optionalAttributes
+    def img(cls,depth,atts,data) :
         return IN*depth + """<img %ssrc="%s"/>\n""" % (atts.__str__(),data)
         
     @classmethod
-    def stylesheet(cls,*args) :
-        depth = args[0]
-        data = args[1]
-        attributes = []
-        atts = Attributes(attributes)
+    @optionalAttributes
+    def stylesheet(cls,depth,atts,data) :
         return IN*depth + """<link rel="stylesheet" href="%s">\n""" % data
-        
+
     
 ## Render as HTML
 def htmlIt(ts,depth=0) :       
@@ -131,7 +133,8 @@ def htmlIt(ts,depth=0) :
             
         tag = ind + "<"+ts[0]+ htmlIt(ts[1]) + ">\n"
         ctag = ind + "</"+ts[0]+">\n"
-        if isinstance(ts[3], basestring) : middle = ts[3] + "\n"
+        if isinstance(ts[3], basestring) : 
+            middle = ts[3] + "\n"
         else :
             middle = "".join([htmlIt(x,depth+1) for x in ts[3]])
         return tag + middle + ctag

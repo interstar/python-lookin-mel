@@ -15,6 +15,7 @@ html:
   </head>
 </html>
 """
+        #print comp(data)[1]
         self.assertEquals(comp(data)[0],desired)
                 
     def testAll(self) :    
