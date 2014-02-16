@@ -1,0 +1,15 @@
+html:
+    head:
+        stylesheet:mystyles.css
+        script:
+            url1
+    body:
+        div(#menu, .mainmenu):
+            menu
+        div(#content, .first, .big):
+            main
+        div(#footer, x=y):
+            p:            
+                copyright
+            p:
+                img(width=533):http://pictures.com/img1
