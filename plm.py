@@ -2,6 +2,7 @@
 # Phil Jones 2014
 
 from indentGrammar import *
+from pprint import pprint
 
 ## Parser definition
 stmt = Forward()
@@ -60,29 +61,54 @@ class Attributes(dict) :
 class Magic :
 
     @classmethod 
-    def contains(cls,name) :
+    def contains3(cls,name) :
         try :
-            getattr(cls,name)
+            getattr(cls,name+"3")
             return True
         except Exception, e:    
             return False
         
     @classmethod 
-    def call(cls,name,*args) :
+    def contains4(cls,name) :
         try :
-            return getattr(cls,name)(*args)
+            getattr(cls,name+"4")
+            return True
+        except Exception, e:    
+            return False
+
+
+    @classmethod 
+    def call3(cls,name,*args) :
+        try :
+            return getattr(cls,name+"3")(*args)
+        except Exception, e :
+            raise e
+
+
+    @classmethod 
+    def call4(cls,name,*args) :
+        try :
+            return getattr(cls,name+"4")(*args)
         except Exception, e :
             raise e
 
     @classmethod
-    def img(cls,depth,attributes,data) :
+    def img3(cls,depth,data) :
+        return cls.img4(depth,[],data)
+        
+    @classmethod
+    def img4(cls,depth,attributes,data) :
         atts = Attributes(attributes)
         return IN*depth + """<img %ssrc="%s"/>\n""" % (atts.__str__(),data)
         
     @classmethod
-    def stylesheet(cls,depth,attributes,data) :
+    def stylesheet3(cls,depth,data) :
+        return cls.stylesheet4(depth,[],data)
+        
+    @classmethod
+    def stylesheet4(cls,depth,attributes,data) :
         atts = Attributes(attributes)
-        return IN*depth + """<link rel="stylesheet" href="%s">""" % data
+        return IN*depth + """<link rel="stylesheet" href="%s">\n""" % data
         
     
 ## Render as HTML
@@ -102,14 +128,20 @@ def htmlIt(ts,depth=0) :
     
     elif len(ts)==3 :
         if ts[1] == ':' :
-            tag = ind + "<"+ts[0]+">\n"
-            ctag = ind + "</"+ts[0]+">\n"
-            middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
-            return tag + middle + ctag
+            if isinstance(ts[2],basestring) :
+                if Magic.contains3(ts[0]) :
+                    return Magic.call3(ts[0],depth,ts[2])
+                else : 
+                    return "ERROR WITH %s" % ", ".join(ts)
+            else :
+                tag = ind + "<"+ts[0]+">\n"
+                ctag = ind + "</"+ts[0]+">\n"
+                middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
+                return tag + middle + ctag
             
     else :
-        if Magic.contains(ts[0]) :
-            return Magic.call(ts[0],depth,ts[1],ts[3])
+        if Magic.contains4(ts[0]) :
+            return Magic.call4(ts[0],depth,ts[1],ts[3])
             
         tag = ind + "<"+ts[0]+ htmlIt(ts[1]) + ">\n"
         ctag = ind + "</"+ts[0]+">\n"
@@ -120,16 +152,26 @@ def htmlIt(ts,depth=0) :
 
     return "ERROR %s"%ts
 
+def comp(data) :
+    parseTree = suite.parseString(data)
+    l = parseTree.asList()
+    return (htmlIt(l),l)
+
 if __name__ == '__main__' :
     data = (open("test.plml")).read()
 
+    print "Original Data"
+    print "___________________"
     print data
-    parseTree = suite.parseString(data)
-
-
-    from pprint import pprint
-    pprint( parseTree.asList() )
-
     print
-    print htmlIt(parseTree.asList() )
+    out, lst = comp(data)
+    print "ParseTree as List"
+    print "_________________________"
+    pprint( lst )
+    print
+    print "Out"
+    print "_______"
+    print out
+
+
 
