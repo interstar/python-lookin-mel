@@ -8,41 +8,40 @@ class TestPLM(unittest.TestCase) :
 html:
     head:
         stylesheet:mystyles.css
+        importscript:libs/jquery.min.js
 """
         desired = """<html>
   <head>
     <link rel="stylesheet" href="mystyles.css">
+    <script src="libs/jquery.min.js"></script>
   </head>
 </html>
 """
         #print comp(data)[1]
         self.assertEquals(comp(data)[0],desired)
-                
+
     def testAll(self) :    
         data =  """
 html:
     head:
         stylesheet:mystyles.css
-        script:
-            url1
+        importscript:libs/jquery.min.js
     body:
         div(#menu, .mainmenu):
             menu
         div(#content, .first, .big):
             main
+            p:
+                img(width=533):http://pictures.com/img1
         div(#footer, x=y):
             p:            
                 copyright
-            p:
-                img(width=533):http://pictures.com/img1
 
 """
         desired = """<html>
   <head>
     <link rel="stylesheet" href="mystyles.css">
-    <script>
-      url1
-    </script>
+    <script src="libs/jquery.min.js"></script>
   </head>
   <body>
     <div id="menu" class="mainmenu" >
@@ -50,13 +49,13 @@ html:
     </div>
     <div id="content" class="first big" >
       main
+      <p>
+        <img width="533" src="http://pictures.com/img1"/>
+      </p>
     </div>
     <div x="y" id="footer" >
       <p>
         copyright
-      </p>
-      <p>
-        <img width="533" src="http://pictures.com/img1"/>
       </p>
     </div>
   </body>

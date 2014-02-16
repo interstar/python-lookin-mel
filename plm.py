@@ -98,6 +98,10 @@ class Magic :
     def stylesheet(cls,depth,atts,data) :
         return IN*depth + """<link rel="stylesheet" href="%s">\n""" % data
 
+    @classmethod
+    @optionalAttributes
+    def importscript(cls,depth,atts,data) :
+        return IN*depth + """<script src="%s"></script>\n""" % data
     
 ## Render as HTML
 def htmlIt(ts,depth=0) :       
