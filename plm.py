@@ -27,7 +27,7 @@ tagApp = Group( tagLine + INDENT + suite + UNDENT )
 
 oneLine = Group(identifier + args + ":" + restOfLine ) | Group(identifier + ":" + restOfLine)
 
-stmt << ( tagApp | oneLine | identifier )
+stmt << ( tagApp | oneLine | val )
 
 IN = "  "
 
@@ -61,52 +61,38 @@ class Attributes(dict) :
 class Magic :
 
     @classmethod 
-    def contains3(cls,name) :
+    def contains(cls,name) :
         try :
-            getattr(cls,name+"3")
-            return True
-        except Exception, e:    
-            return False
-        
-    @classmethod 
-    def contains4(cls,name) :
-        try :
-            getattr(cls,name+"4")
+            getattr(cls,name)
             return True
         except Exception, e:    
             return False
 
-
     @classmethod 
-    def call3(cls,name,*args) :
+    def call(cls,name,*args) :
         try :
-            return getattr(cls,name+"3")(*args)
+            return getattr(cls,name)(*args)
         except Exception, e :
             raise e
-
-
-    @classmethod 
-    def call4(cls,name,*args) :
-        try :
-            return getattr(cls,name+"4")(*args)
-        except Exception, e :
-            raise e
-
+             
     @classmethod
-    def img3(cls,depth,data) :
-        return cls.img4(depth,[],data)
-        
-    @classmethod
-    def img4(cls,depth,attributes,data) :
+    def img(cls,*args) :
+        if len(args) == 3 :
+            depth = args[0]
+            attributes = args[1]
+            data = args[2]
+        else :
+            depth = args[0]
+            data = args[1]
+            attributes = []
         atts = Attributes(attributes)
         return IN*depth + """<img %ssrc="%s"/>\n""" % (atts.__str__(),data)
         
     @classmethod
-    def stylesheet3(cls,depth,data) :
-        return cls.stylesheet4(depth,[],data)
-        
-    @classmethod
-    def stylesheet4(cls,depth,attributes,data) :
+    def stylesheet(cls,*args) :
+        depth = args[0]
+        data = args[1]
+        attributes = []
         atts = Attributes(attributes)
         return IN*depth + """<link rel="stylesheet" href="%s">\n""" % data
         
@@ -129,8 +115,8 @@ def htmlIt(ts,depth=0) :
     elif len(ts)==3 :
         if ts[1] == ':' :
             if isinstance(ts[2],basestring) :
-                if Magic.contains3(ts[0]) :
-                    return Magic.call3(ts[0],depth,ts[2])
+                if Magic.contains(ts[0]) :
+                    return Magic.call(ts[0],depth,ts[2])
                 else : 
                     return "ERROR WITH %s" % ", ".join(ts)
             else :
@@ -140,8 +126,8 @@ def htmlIt(ts,depth=0) :
                 return tag + middle + ctag
             
     else :
-        if Magic.contains4(ts[0]) :
-            return Magic.call4(ts[0],depth,ts[1],ts[3])
+        if Magic.contains(ts[0]) :
+            return Magic.call(ts[0],depth,ts[1],ts[3])
             
         tag = ind + "<"+ts[0]+ htmlIt(ts[1]) + ">\n"
         ctag = ind + "</"+ts[0]+">\n"
