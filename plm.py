@@ -151,19 +151,27 @@ def comp(data) :
     return (htmlIt(l),l)
 
 if __name__ == '__main__' :
-    data = (open("test.plml")).read()
-
+    import sys
+    fName = sys.argv[1]
+    
+    data = (open(fName)).read()
+    
+    """
     print "Original Data"
     print "___________________"
     print data
     print
+    """
     out, lst = comp(data)
+    """
     print "ParseTree as List"
     print "_________________________"
     pprint( lst )
     print
     print "Out"
     print "_______"
+    """
+    
     print out
 
 
