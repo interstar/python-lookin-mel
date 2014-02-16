@@ -10,7 +10,7 @@ Wassup?
 
 What you want is 'mel that LOOKS like Python. 
 
-That's where Python Lookin' 'mel does you.
+That's where Python Lookin' 'mel comes in.
 
 
 Huh?
