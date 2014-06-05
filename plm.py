@@ -25,7 +25,7 @@ args = Optional( Group( "(" + delimitedList(attr)  + ")" ) )
 tagLine = (identifier + args + ":")
 tagApp = Group( tagLine + INDENT + suite + UNDENT )
 
-oneLine = Group(identifier + args + ":" + restOfLine ) | Group(identifier + ":" + restOfLine)
+oneLine = Group(identifier + args + ":" + restOfLine ) | Group(identifier + ":" + restOfLine) | Group(identifier + "/") |  Group(identifier + args + "/")
 
 stmt << ( tagApp | oneLine | val )
 
@@ -54,6 +54,8 @@ class Attributes(dict) :
             if k == "class" :
                 build = build + """class="%s" """ % " ".join(x for x in self["class"])
             else :
+                if v[0] == '"' and v[-1] == '"' : 
+                    v = v.strip('"')
                 build = build + """%s="%s" """ % (k,v)
         return build        
                 
@@ -117,20 +119,31 @@ def htmlIt(ts,depth=0) :
         atts = Attributes(ts)
         return " " + atts.__str__()
         
-    
+    elif len(ts)==2 :
+        if ts[1] == '/' :
+            return ind + "<" + ts[0]+"/>\n"
+        else :
+            return ("ERROR WITH %s" % ", ".join(ts)) + " Only two items but second was a /"
+            
     elif len(ts)==3 :
         if ts[1] == ':' :
-            if isinstance(ts[2],basestring) :
+            # 3 items, ts[1] is : to define something
+            if isinstance(ts[2],basestring) : 
+                # we have 3 items, ts[2] is data on same line
                 if Magic.contains(ts[0]) :
                     return Magic.call(ts[0],depth,ts[2])
                 else : 
-                    return "ERROR WITH %s" % ", ".join(ts)
+                    return ind + "<%s>%s</%s>\n" % (ts[0],ts[2],ts[0])
             else :
+                # we have 3 items, ts[2] is sub-block
                 tag = ind + "<"+ts[0]+">\n"
                 ctag = ind + "</"+ts[0]+">\n"
                 middle = "".join([htmlIt(x,depth+1) for x in ts[2]])
                 return tag + middle + ctag
-            
+        elif ts[2] == '/' :
+            # 3 items, ts[1] is attributes, ts[2] closes it 
+            atts = Attributes(ts[1])
+            return ind + "<%s %s/>\n" % (ts[0],atts.__str__())
     else :
         if Magic.contains(ts[0]) :
             return Magic.call(ts[0],depth,ts[1],ts[3])
@@ -148,7 +161,7 @@ def htmlIt(ts,depth=0) :
 def comp(data) :
     parseTree = suite.parseString(data)
     l = parseTree.asList()
-    return (htmlIt(l),l)
+    return ("<!DOCTYPE html>\n"+htmlIt(l),l)
 
 if __name__ == '__main__' :
     import sys
