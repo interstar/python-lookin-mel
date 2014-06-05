@@ -84,7 +84,7 @@ define UIs as nested divs and widget-sets etc.
 
 It's a small pre-processor, built using PyParsing. It pulls in an indentation-defined tree of tags and spits out the HTML equivalent with a couple of extra bells and whistles :
 
-* uses css-style . and # to define class and id. Eg. `h2:(#heading, .main)` will become `<h2 id="heading" class="main">`. 
+* uses css-style . and # to define class and id. Eg. `h2(#heading, .main):` will become `<h2 id="heading" class="main">`. 
 * has some special shorthands for common activities. For example `stylesheet:mystyles.css` becomes `<link rel="stylesheet" href="mystyles.css">`
 
 Quick Start
